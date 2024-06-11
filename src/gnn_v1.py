@@ -1,6 +1,10 @@
 import torch
 from torch_geometric.data import Data
 import json
+import warnings
+
+# Suppress warnings
+warnings.filterwarnings("ignore")
 
 # Load your JSON data
 with open("graph_json/graphs.json") as f:
@@ -11,11 +15,22 @@ def json_to_data(graph):
     nodes = graph["nodes"]
     edges = graph["edges"]
 
-    # Filter out nodes with empty values and convert to tensor
-    x = torch.tensor([node["value"] for node in nodes if node["value"] != ""], dtype=torch.float)
+    # Create a mapping from node IDs to integers
+    node_id_map = {node["id"]: i for i, node in enumerate(nodes)}
+
+    # Filter out nodes with empty values
+    node_values = [node["value"] for node in nodes if node["value"] != ""]
+
+    if len(node_values) == 0:
+        raise ValueError("All node values are empty. Cannot create tensor.")
+
+    # Convert node values to tensor
+    x = torch.tensor(node_values, dtype=torch.float)
+
+    # Convert edges to use the integer mapping
     edge_index = (
         torch.tensor(
-            [[edge["source"], edge["target"]] for edge in edges], dtype=torch.long
+            [[node_id_map[edge["source"]], node_id_map[edge["target"]]] for edge in edges], dtype=torch.long
         )
         .t()
         .contiguous()
@@ -24,11 +39,8 @@ def json_to_data(graph):
     data = Data(x=x, edge_index=edge_index)
     return data
 
-# Check the structure of the JSON data
-if "graphs" in graph_data and isinstance(graph_data["graphs"], list):
-    data_list = [json_to_data(graph) for graph in graph_data["graphs"]]
-else:
-    raise ValueError("The JSON structure is not as expected. 'graphs' key is missing or not a list.")
+# Convert all graphs
+data_list = [json_to_data(graph) for graph in graph_data]
 
 # Example of how to use the data_list
 # Here, we assume you will use the first graph for training
