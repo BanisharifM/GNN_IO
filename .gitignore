@@ -1,1 +1,3 @@
 data_csv/sample_train.csv
+graph_json/graphs.json
+graph_json/*

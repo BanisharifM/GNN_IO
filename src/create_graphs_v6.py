@@ -3,10 +3,6 @@ import pandas as pd
 import networkx as nx
 import json
 
-# Load the CSV file
-file_path = "data_csv/sample_train.csv"
-df = pd.read_csv(file_path)
-
 # Define categories and their corresponding counters
 categories = {
     "POSIX_ACCESS": [
@@ -67,30 +63,23 @@ categories = {
 }
 
 # Directory to save the graph representations
-output_dir = "graph_json"
+output_dir = "graph_json/v6"
 os.makedirs(output_dir, exist_ok=True)
 print(f"Output directory created at: {output_dir}")
 
-# Path to the JSON file
-json_file_path = f"{output_dir}/graphs.json"
-
-# Initialize a list to store all graph details
-graphs = []
-
-
 # Function to create and save graph for each row
-def create_and_save_graph(row, index):
+def create_and_save_graph(row, index, chunk_index, json_file_path):
     G = nx.DiGraph()
     root_node = "Tag"
     G.add_node(root_node, value=row["tag"])
 
     for category, counters in categories.items():
         G.add_node(category, value="")
-        G.add_edge(root_node, category, data={})
+        G.add_edge(root_node, category)  # Edge from root to category
         for counter in counters:
             if counter in row:
                 G.add_node(counter, value=row[counter])
-                G.add_edge(category, counter, data={})
+                G.add_edge(category, counter)  # Edge from category to counter
 
     # Convert the graph to a dictionary representation
     graph_dict = {
@@ -99,25 +88,27 @@ def create_and_save_graph(row, index):
             {"id": node, "value": data["value"]} for node, data in G.nodes(data=True)
         ],
         "edges": [
-            {"source": source, "target": target, "data": data["data"]}
+            {"source": source, "target": target, "data": data}
             for source, target, data in G.edges(data=True)
         ],
     }
 
-    # Append the graph dictionary to the list of graphs
-    graphs.append(graph_dict)
-    print(f"Graph {index} created")
+    # Append the graph dictionary to the JSON file
+    with open(json_file_path, "a") as f:
+        json.dump(graph_dict, f)
+        f.write('\n')
 
+    print(f"Graph {index} saved to {json_file_path}")
 
-# Create and save graphs for the first 10 rows
-for index, row in df.iterrows():
-    if index < 1000000:
-        create_and_save_graph(row, index)
-    else:
-        break
+# Load the CSV file in chunks
+file_path = "data_csv/sample_train.csv"
+chunk_size = 1000
 
-# Save all graphs to the JSON file
-with open(json_file_path, "w") as f:
-    json.dump(graphs, f, indent=4)
+for chunk_index, chunk in enumerate(pd.read_csv(file_path, chunksize=chunk_size)):
+    json_file_path = f"{output_dir}/graphs_chunk_{chunk_index}.json"
+    if os.path.exists(json_file_path):
+        os.remove(json_file_path)
+    # Create and save graphs for the current chunk
+    for index, row in chunk.iterrows():
+        create_and_save_graph(row, index, chunk_index, json_file_path)
 
-print(f"Graphs saved to JSON file at: {json_file_path}")
