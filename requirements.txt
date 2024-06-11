@@ -1,7 +1,7 @@
-# networkx==3.2.1
-# pandas==2.2.2
-# xlsxwriter==3.1.4
-# matplotlib==3.7.1
-# openpyxl==3.1.2
-# graphviz==0.20.1
-# pygraphviz==1.9
+ networkx==3.2.1
+ pandas==2.2.2
+ xlsxwriter==3.1.4
+ matplotlib==3.7.1
+ openpyxl==3.1.2
+ graphviz==0.20.1
+ pygraphviz==1.9

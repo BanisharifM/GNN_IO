@@ -4,7 +4,7 @@ import networkx as nx
 import json
 
 # Load the CSV file
-file_path = "CSVs/sample_train_100.csv"
+file_path = "data_csv/sample_train_100.csv"
 df = pd.read_csv(file_path)
 
 # Define categories and their corresponding counters

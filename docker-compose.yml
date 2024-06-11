@@ -1,9 +1,11 @@
 version: '3.8'
 
 services:
-  GNN_IO_APP:
+  gnn-io-app:
     build: .
-    container_name: GNN_IO_APP
+    container_name: gnn-io-app
+    ports:
+      - "8080:80"
     volumes:
       - ./data_csv:/app/data_csv
       - ./graph_json:/app/graph_json
