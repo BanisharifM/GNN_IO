@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  GNN_IO_APP:
+    build: .
+    container_name: GNN_IO_APP
+    volumes:
+      - ./data_csv:/app/data_csv
+      - ./graph_json:/app/graph_json
